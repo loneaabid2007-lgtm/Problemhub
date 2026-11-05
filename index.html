@@ -1,0 +1,193 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProblemHub</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f6fc;
+            color: #222;
+        }
+
+        header {
+            background: #1746a2;
+            color: white;
+            padding: 22px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #00000012;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0 18px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+        }
+
+        textarea {
+            height: 120px;
+        }
+
+        button {
+            background: #1746a2;
+            color: white;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 7px;
+            font-size: 16px;
+        }
+
+        #message {
+            display: none;
+            background: #e1f7e9;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>ProblemHub</h1>
+    <p>Every problem deserves to be heard.</p>
+</header>
+
+<div class="container">
+    <div class="card">
+
+        <h2>Share Your Problem</h2>
+        <p>Tell us what difficulty you are facing.</p>
+
+        <form id="problemForm">
+
+            <label>Your problem title</label>
+            <input type="text" id="title"
+                placeholder="What is your problem?"
+                required>
+
+            <label>Choose a category</label>
+            <select id="category" required>
+                <option value="">Select category</option>
+                <option>Education</option>
+                <option>Technology</option>
+                <option>Healthcare</option>
+                <option>Business</option>
+                <option>Daily Life</option>
+                <option>Other</option>
+            </select>
+
+            <label>Explain your problem</label>
+            <textarea id="details"
+                placeholder="Describe your problem..."
+                required></textarea>
+
+            <label>What change do you want?</label>
+            <textarea id="change"
+                placeholder="Tell us what would help..."
+                required></textarea>
+
+            <button type="submit">
+                Submit My Problem
+            </button>
+
+        </form>
+
+        <div id="message">
+            <h3>Thank you!</h3>
+            <p>Your problem has been received in this demo.</p>
+            <p id="reference"></p>
+        </div>
+
+    </div>
+</div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  
+<script>
+  const db = window.supabase.createClient(
+  "https://monphctwzltqrtouvxml.supabase.co",
+  "sb_publishable_SkszYqvytFQSIFU1lip5fw_OyltXTbd"
+);
+  emailjs.init({
+  publicKey: "xFpbKeAPghQcoY0u2"});
+    const form = document.getElementById("problemForm");
+
+form.addEventListener("submit", async function(event) {
+  event.preventDefault();
+
+  const button = form.querySelector('button[type="submit"]');
+  button.disabled = true;
+  button.textContent = "Sending...";
+
+  const templateParams = {
+    title: document.getElementById("title").value,
+    category: document.getElementById("category").value,
+    details: document.getElementById("details").value,
+    change: document.getElementById("change").value,
+    country: "",
+    contact: ""
+  };
+const { error: dbError } = await db
+  .from("problem_submissions")
+  .insert([{
+    title: templateParams.title,
+    category: templateParams.category,
+    details: templateParams.details,
+    country: templateParams.country,
+    suggested_change: templateParams.change,
+    contact_email: templateParams.contact
+  }]);
+
+if (dbError) {
+  throw dbError;
+}
+  try {
+    await emailjs.send(
+      "service_cucgiv9",
+      "template_2mk3bba",
+      templateParams
+    );
+
+    const reference = "PH-" +
+      Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    document.getElementById("reference").textContent =
+      "Your reference: " + reference;
+
+    document.getElementById("message").style.display = "block";
+    form.style.display = "none";
+
+  } catch (error) {
+    
+    button.disabled = false;
+    button.textContent = "Submit Problem";
+    console.error(error);
+  }
+});
+  
+</script>
+</body>
+</html>
